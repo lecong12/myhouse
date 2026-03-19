@@ -1,24 +1,20 @@
-# MyHouse Project Dashboard
+# MyHouse Manager - Hệ thống Quản lý Xây dựng & Tài chính
 
-Đây là một trang web tĩnh đơn giản được xây dựng để theo dõi và quản lý dự án xây dựng nhà cá nhân. Trang tổng quan này cung cấp một cái nhìn toàn diện về các khía cạnh khác nhau của dự án, từ ngân sách, tiến độ đến các chi tiết thiết kế.
+Đây là ứng dụng web quản lý dự án xây dựng nhà ở gia đình, được xây dựng trên nền tảng **Next.js (App Router)** và **MongoDB**. Hệ thống giúp theo dõi dòng tiền, tiến độ thi công và nhận thông báo theo thời gian thực.
 
 ## ✨ Tính năng
 
-Trang web được tổ chức thành nhiều tab, mỗi tab tập trung vào một phần cụ thể của dự án:
-
-*   **Tổng Quan**: Hiển thị thông số kỹ thuật chính của dự án, bao gồm kích thước, địa điểm, phong cách, và bố trí công năng chi tiết cho từng tầng.
-*   **Dự Toán Tổng**: Trình bày phân bổ ngân sách tổng thể dưới dạng biểu đồ tròn (doughnut chart) và bảng chi tiết, giúp dễ dàng hình dung các khoản chi lớn.
-*   **Dự Toán Vật tư Chi tiết**: Một bảng tính chi tiết các loại vật tư, chi phí, số lượng. Người dùng có thể lọc theo hạng mục và sắp xếp theo các cột khác nhau (tên, giá, tổng tiền, v.v.).
-*   **Tiến Độ & Nghiệm Thu**: Một lộ trình thi công trực quan theo dạng timeline, chia thành các giai đoạn chính. Mỗi giai đoạn bao gồm các công việc của nhà thầu và các hạng mục chủ nhà cần nghiệm thu.
-*   **Hướng Dẫn Giám Sát**: Cung cấp các danh sách kiểm tra (checklist) cho việc giám sát chất lượng vật tư và chất lượng thi công hoàn thiện.
-*   **Thiết Kế & Vật Tư**: Trưng bày các lựa chọn thiết kế và vật liệu chính, kèm theo lý do lựa chọn để định hình phong cách cho ngôi nhà.
+*   **Dashboard Trực quan**: Biểu đồ phân tích chi phí thực tế so với ngân sách.
+*   **Quản lý Thu/Chi**: Theo dõi dòng tiền chi tiết theo hạng mục (Vật tư, Nhân công...) và giai đoạn (Móng, Thân...).
+*   **Tương tác 2 chiều**: Tự động gửi thông báo qua Telegram khi có giao dịch mới.
+*   **Cơ sở dữ liệu đám mây**: Lưu trữ dữ liệu an toàn trên MongoDB Atlas.
 
 ## 🚀 Công nghệ sử dụng
 
-*   **HTML5**: Cấu trúc cơ bản của trang web.
-*   **Bootstrap 5**: Framework CSS để tạo giao diện người dùng hiện đại và đáp ứng nhanh chóng.
-*   **JavaScript (ES6)**: Xử lý toàn bộ logic của ứng dụng, bao gồm quản lý trạng thái, render nội dung động, và tương tác người dùng.
-*   **Chart.js**: Thư viện để vẽ biểu đồ phân bổ ngân sách.
+*   **Frontend**: Next.js 14 (App Router), React, Tailwind CSS, Recharts, SWR.
+*   **Backend**: Next.js API Routes (Serverless).
+*   **Database**: MongoDB (Mongoose ODM).
+*   **Thông báo**: Telegram Bot API.
 
 ## 📂 Cấu trúc dự án
 
