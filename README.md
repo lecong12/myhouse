@@ -17,7 +17,6 @@
 *   **Thông báo**: Telegram Bot API.
 
 ## 📂 Cấu trúc dự án
-
 ```
 /
 ├── index.html      # Tệp HTML chính
