@@ -34,7 +34,7 @@ export default async function HomePage() {
   return (
     <div className="max-w-4xl mx-auto p-6 min-h-screen bg-slate-50">
       <header className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900 uppercase italic">My House 2026</h1>
+        <h1 className="text-3xl font-black text-slate-900 uppercase italic">MY HOUSE 2026</h1>
         <p className="text-slate-500 font-bold text-xs tracking-widest">REAL-TIME FINANCIAL TRACKING</p>
       </header>
 
