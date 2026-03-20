@@ -2,25 +2,34 @@ import connectDB from '../lib/mongodb';
 import Transaction from '../models/Transaction';
 import { addTransaction } from './actions';
 
-// Lệnh loại bỏ tạo trang tĩnh triệt để
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
 
 export default async function HomePage() {
-  await connectDB();
+  let transactions = [];
+  let income = 0;
+  let expense = 0;
 
-  // Tẩy tủy dữ liệu (Sanitize) để tránh lỗi Unsupported Server Component type
-  const rawData = await Transaction.find().sort({ date: -1 }).limit(20).lean();
-  const transactions = JSON.parse(JSON.stringify(rawData));
+  try {
+    await connectDB();
 
-  const rawTotals = await Transaction.aggregate([
-    { $group: { _id: '$type', total: { $sum: '$amount' } } }
-  ]);
-  const totals = JSON.parse(JSON.stringify(rawTotals));
+    // 1. Lấy và làm sạch dữ liệu thủ công (An toàn hơn JSON.parse)
+    const rawData = await Transaction.find().sort({ date: -1 }).limit(20).lean();
+    transactions = rawData.map(t => ({
+      ...t,
+      _id: t._id.toString(), // Chuyển ObjectId thành String
+      date: t.date ? new Date(t.date).toISOString() : new Date().toISOString(), // Chuyển Date thành String
+    }));
 
-  const income = totals.find(t => t._id === 'INCOME')?.total || 0;
-  const expense = totals.find(t => t._id === 'EXPENSE')?.total || 0;
+    const rawTotals = await Transaction.aggregate([
+      { $group: { _id: '$type', total: { $sum: '$amount' } } }
+    ]);
+    // Không cần map lại rawTotals vì _id là string ('INCOME'/'EXPENSE') và total là number
+
+    income = rawTotals.find(t => t._id === 'INCOME')?.total || 0;
+    expense = rawTotals.find(t => t._id === 'EXPENSE')?.total || 0;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
 
   return (
     <div className='max-w-4xl mx-auto p-6 bg-slate-50 min-h-screen font-sans'>
