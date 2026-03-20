@@ -1,154 +1,99 @@
-'use client';
+import connectDB from '@/lib/mongodb';
+import Transaction from '@/models/Transaction';
+import { revalidatePath } from 'next/cache';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+// Ép Next.js luôn render tươi, không render tĩnh lúc build (Sửa lỗi 404 & Prerender)
+export const dynamic = 'force-dynamic';
 
-export default function NewTransactionPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    amount: '',
-    type: 'EXPENSE',
-    category: 'Vật tư',
-    phase: 'Móng',
-    contractor: '',
-    date: new Date().toISOString().split('T')[0],
-    notes: '',
-    status: 'PAID'
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+async function addTransaction(formData) {
+  'use server';
+  await connectDB();
+  const data = {
+    title: formData.get('title'),
+    amount: Number(formData.get('amount')),
+    type: formData.get('type'),
+    category: formData.get('category'),
+    date: new Date(),
   };
+  await Transaction.create(data);
+  revalidatePath('/');
+}
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+export default async function HomePage() {
+  await connectDB();
 
-    try {
-      const res = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          amount: Number(formData.amount)
-        }),
-      });
+  // LẤY DỮ LIỆU VÀ LÀM SẠCH (CRITICAL STEP)
+  const rawTransactions = await Transaction.find()
+    .sort({ date: -1 })
+    .limit(10)
+    .lean(); // .lean() giúp lấy object thuần, không lấy hàm của Mongoose
 
-      const data = await res.json();
-      
-      if (!data.success) throw new Error(data.error || 'Có lỗi xảy ra');
+  const transactions = rawTransactions.map(t => ({
+    ...t,
+    _id: t._id.toString(), // Ép ObjectId thành String
+    date: t.date ? t.date.toISOString() : new Date().toISOString(), // Ép Date thành String
+  }));
 
-      // Redirect về dashboard sau khi tạo thành công
-      router.push('/dashboard');
-      router.refresh(); 
-    } catch (error) {
-      alert('Lỗi: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const rawTotals = await Transaction.aggregate([
+    { $group: { _id: "$type", total: { $sum: "$amount" } } }
+  ]);
+  
+  // Làm sạch dữ liệu aggregate
+  const totals = JSON.parse(JSON.stringify(rawTotals));
+  const income = totals.find(t => t._id === 'INCOME')?.total || 0;
+  const expense = totals.find(t => t._id === 'EXPENSE')?.total || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Thêm Giao Dịch Mới</h1>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          {/* Loại giao dịch */}
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              type="button"
-              onClick={() => setFormData({...formData, type: 'INCOME'})}
-              className={`p-3 rounded-lg border text-center font-medium ${formData.type === 'INCOME' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-200 text-gray-600'}`}
-            >
-              ➕ Thu Nhập (Nạp vốn)
-            </button>
-            <button
-              type="button"
-              onClick={() => setFormData({...formData, type: 'EXPENSE'})}
-              className={`p-3 rounded-lg border text-center font-medium ${formData.type === 'EXPENSE' ? 'bg-red-50 border-red-500 text-red-700' : 'border-gray-200 text-gray-600'}`}
-            >
-              ➖ Chi Phí
-            </button>
-          </div>
+    <div className="max-w-4xl mx-auto p-4">
+      <header className="mb-8 text-center">
+        <h1 className="text-3xl font-bold">MyHouse 2026</h1>
+        <p className="text-slate-500">Quản lý tài chính xây dựng</p>
+      </header>
 
-          {/* Tên khoản chi */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nội dung / Tên khoản chi *</label>
-            <input
-              type="text"
-              name="title"
-              required
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="Ví dụ: Mua 10 bao xi măng"
-              value={formData.title}
-              onChange={handleChange}
-            />
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
+        <div className="bg-blue-50 p-4 rounded-xl border">
+          <p className="text-sm">Tổng Vốn</p>
+          <p className="text-2xl font-bold text-blue-600">{income.toLocaleString()} đ</p>
+        </div>
+        <div className="bg-red-50 p-4 rounded-xl border">
+          <p className="text-sm">Đã Chi</p>
+          <p className="text-2xl font-bold text-red-600">{expense.toLocaleString()} đ</p>
+        </div>
+        <div className="bg-green-50 p-4 rounded-xl border">
+          <p className="text-sm">Còn Lại</p>
+          <p className="text-2xl font-bold text-green-600">{(income - expense).toLocaleString()} đ</p>
+        </div>
+      </div>
 
-          {/* Số tiền */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Số tiền (VND) *</label>
-            <input
-              type="number"
-              name="amount"
-              required
-              min="0"
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              value={formData.amount}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Danh mục */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
-              <select name="category" className="w-full p-2 border border-gray-300 rounded-lg" value={formData.category} onChange={handleChange}>
-                <option value="Vật tư">🧱 Vật tư</option>
-                <option value="Nhân công">👷 Nhân công</option>
-                <option value="Máy móc">🚜 Máy móc</option>
-                <option value="Nội thất">🪑 Nội thất</option>
-                <option value="Khác">📦 Khác</option>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section className="bg-white p-6 rounded-2xl shadow-sm border h-fit">
+          <h2 className="text-xl font-semibold mb-4">Nhập Giao Dịch</h2>
+          <form action={addTransaction} className="space-y-4">
+            <input name="title" placeholder="Nội dung" required className="w-full p-2 border rounded-lg" />
+            <div className="flex gap-2">
+              <input name="amount" type="number" placeholder="Số tiền" required className="flex-1 p-2 border rounded-lg" />
+              <select name="type" className="p-2 border rounded-lg">
+                <option value="EXPENSE">Chi</option>
+                <option value="INCOME">Thu</option>
               </select>
             </div>
+            <button type="submit" className="w-full bg-slate-800 text-white p-3 rounded-lg font-bold">Lưu</button>
+          </form>
+        </section>
 
-            {/* Giai đoạn */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Giai đoạn</label>
-              <select name="phase" className="w-full p-2 border border-gray-300 rounded-lg" value={formData.phase} onChange={handleChange}>
-                <option value="Chuẩn bị">Chuẩn bị & Pháp lý</option>
-                <option value="Móng">Móng & Kết cấu ngầm</option>
-                <option value="Thân">Phần Thân (Cột/Sàn)</option>
-                <option value="Hoàn thiện">Hoàn thiện (Xây/Trát/Sơn)</option>
-                <option value="Nội thất">Lắp đặt Nội thất</option>
-              </select>
-            </div>
+        <section>
+          <h2 className="text-xl font-semibold mb-4">Lịch Sử</h2>
+          <div className="space-y-2">
+            {transactions.map((t) => (
+              <div key={t._id} className="flex justify-between p-3 bg-gray-50 rounded-lg border">
+                <span>{t.title}</span>
+                <span className={t.type === 'EXPENSE' ? 'text-red-500 font-bold' : 'text-green-600 font-bold'}>
+                  {t.type === 'EXPENSE' ? '-' : '+'}{t.amount.toLocaleString()}
+                </span>
+              </div>
+            ))}
           </div>
-
-          {/* Nhà thầu & Ngày */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nhà thầu / Cửa hàng</label>
-                <input type="text" name="contractor" className="w-full p-2 border border-gray-300 rounded-lg" placeholder="Tên đơn vị..." value={formData.contractor} onChange={handleChange} />
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ngày giao dịch</label>
-                <input type="date" name="date" required className="w-full p-2 border border-gray-300 rounded-lg" value={formData.date} onChange={handleChange} />
-            </div>
-          </div>
-
-          <div className="pt-4 flex gap-3">
-            <button type="button" onClick={() => router.back()} className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">Hủy</button>
-            <button type="submit" disabled={loading} className="flex-1 py-2 px-4 bg-blue-600 rounded-lg text-white font-medium hover:bg-blue-700 disabled:bg-blue-300">
-              {loading ? 'Đang lưu...' : 'Lưu Giao Dịch'}
-            </button>
-          </div>
-        </form>
+        </section>
       </div>
     </div>
   );
