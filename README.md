@@ -17,6 +17,12 @@
 *   **Thông báo**: Telegram Bot API.
 
 ## 📂 Cấu trúc dự án
+
+Dự án này sử dụng cấu trúc App Router của Next.js.
+
+
+Dự án này sử dụng cấu trúc App Router của Next.js.
+
 ```
 /
 ├── index.html      # Tệp HTML chính
