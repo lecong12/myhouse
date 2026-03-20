@@ -8,20 +8,28 @@ export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 
 export default async function HomePage() {
-  await connectDB();
+  let transactions = [];
+  let income = 0;
+  let expense = 0;
 
-  // Lấy dữ liệu và TẨY TỦY (Sanitize) 100% sang JSON thuần
-  const rawData = await Transaction.find().sort({ date: -1 }).limit(20).lean();
-  const transactions = JSON.parse(JSON.stringify(rawData));
+  try {
+    await connectDB();
 
-  // Tương tự với phần Aggregate
-  const rawTotals = await Transaction.aggregate([
-    { $group: { _id: '$type', total: { $sum: '$amount' } } }
-  ]);
-  const totals = JSON.parse(JSON.stringify(rawTotals));
+    // Lấy dữ liệu và TẨY TỦY (Sanitize) 100% sang JSON thuần
+    const rawData = await Transaction.find().sort({ date: -1 }).limit(20).lean();
+    transactions = JSON.parse(JSON.stringify(rawData));
 
-  const income = totals.find(t => t._id === 'INCOME')?.total || 0;
-  const expense = totals.find(t => t._id === 'EXPENSE')?.total || 0;
+    // Tương tự với phần Aggregate
+    const rawTotals = await Transaction.aggregate([
+      { $group: { _id: '$type', total: { $sum: '$amount' } } }
+    ]);
+    const totals = JSON.parse(JSON.stringify(rawTotals));
+
+    income = totals.find(t => t._id === 'INCOME')?.total || 0;
+    expense = totals.find(t => t._id === 'EXPENSE')?.total || 0;
+  } catch (error) {
+    console.error("Build-time data fetch skipped or failed:", error);
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 min-h-screen bg-slate-50">
