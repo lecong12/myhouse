@@ -3,12 +3,20 @@ import Transaction from '@/models/Transaction';
 import TransactionForm from '@/components/TransactionForm';
 import { format } from 'date-fns';
 
+// Ép trang này thành Dynamic để tránh lỗi Prerender khi build (Quan trọng)
+export const dynamic = 'force-dynamic';
+
 // Hàm lấy dữ liệu chạy trực tiếp trên Server (không cần API)
 async function getData() {
   await dbConnect();
   // lean() trả về plain JS object giúp hiệu năng tốt hơn
-  const transactions = await Transaction.find({}).sort({ date: -1 }).limit(20).lean();
-  return transactions;
+  const rawTransactions = await Transaction.find({}).sort({ date: -1 }).limit(20).lean();
+  
+  return rawTransactions.map(t => ({
+    ...t,
+    _id: t._id.toString(), // Chuyển ObjectId thành chuỗi
+    date: t.date ? new Date(t.date).toISOString() : new Date().toISOString() // Chuyển Date thành chuỗi ISO
+  }));
 }
 
 export default async function Dashboard() {
