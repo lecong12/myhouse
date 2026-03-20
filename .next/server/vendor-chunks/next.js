@@ -1807,17 +1807,6 @@ module.exports = createProxy("E:\\Myapp\\myhouse\\node_modules\\next\\dist\\clie
 
 /***/ }),
 
-/***/ "(rsc)/./node_modules/next/dist/client/components/default-layout.js":
-/*!********************************************************************!*\
-  !*** ./node_modules/next/dist/client/components/default-layout.js ***!
-  \********************************************************************/
-/***/ ((module, exports, __webpack_require__) => {
-
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", ({\n    value: true\n}));\nObject.defineProperty(exports, \"default\", ({\n    enumerable: true,\n    get: function() {\n        return DefaultLayout;\n    }\n}));\nconst _interop_require_default = __webpack_require__(/*! @swc/helpers/_/_interop_require_default */ \"(rsc)/./node_modules/@swc/helpers/esm/_interop_require_default.js\");\nconst _jsxruntime = __webpack_require__(/*! react/jsx-runtime */ \"(rsc)/./node_modules/next/dist/server/future/route-modules/app-page/vendored/rsc/react-jsx-runtime.js\");\nconst _react = /*#__PURE__*/ _interop_require_default._(__webpack_require__(/*! react */ \"(rsc)/./node_modules/next/dist/server/future/route-modules/app-page/vendored/rsc/react.js\"));\nfunction DefaultLayout(param) {\n    let { children } = param;\n    return /*#__PURE__*/ (0, _jsxruntime.jsx)(\"html\", {\n        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(\"body\", {\n            children: children\n        })\n    });\n}\nif ((typeof exports.default === \"function\" || typeof exports.default === \"object\" && exports.default !== null) && typeof exports.default.__esModule === \"undefined\") {\n    Object.defineProperty(exports.default, \"__esModule\", {\n        value: true\n    });\n    Object.assign(exports.default, exports);\n    module.exports = exports.default;\n} //# sourceMappingURL=default-layout.js.map\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHJzYykvLi9ub2RlX21vZHVsZXMvbmV4dC9kaXN0L2NsaWVudC9jb21wb25lbnRzL2RlZmF1bHQtbGF5b3V0LmpzIiwibWFwcGluZ3MiOiI7Ozs7MkNBRUE7OztlQUF3QkE7Ozs7OzRFQUZOO0FBRUgsU0FBU0EsY0FBY0MsS0FJckM7SUFKcUMsTUFDcENDLFFBQVEsRUFHVCxHQUpxQ0Q7SUFLcEMsT0FDRSxXQURGLEdBQ0UsSUFBQUUsWUFBQUMsR0FBQSxFQUFDQyxRQUFBQTtrQkFDQyxrQkFBQUYsWUFBQUMsR0FBQSxFQUFDRSxRQUFBQTtzQkFBTUo7OztBQUdiIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vbXlob3VzZS1tYW5hZ2VyLy4uLy4uL3NyYy9jbGllbnQvY29tcG9uZW50cy9kZWZhdWx0LWxheW91dC50c3g/OTA4MiJdLCJuYW1lcyI6WyJEZWZhdWx0TGF5b3V0IiwicGFyYW0iLCJjaGlsZHJlbiIsIl9qc3hydW50aW1lIiwianN4IiwiaHRtbCIsImJvZHkiXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///(rsc)/./node_modules/next/dist/client/components/default-layout.js\n");
-
-/***/ }),
-
 /***/ "(rsc)/./node_modules/next/dist/client/components/error-boundary.js":
 /*!********************************************************************!*\
   !*** ./node_modules/next/dist/client/components/error-boundary.js ***!
