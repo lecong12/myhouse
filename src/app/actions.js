@@ -16,7 +16,9 @@ export async function addTransaction(formData) {
     };
     await Transaction.create(data);
     revalidatePath('/');
+    return { success: true };
   } catch (error) {
     console.error('Lỗi Action:', error);
+    return { error: 'Lỗi khi lưu dữ liệu' };
   }
 }
