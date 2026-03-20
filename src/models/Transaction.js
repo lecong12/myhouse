@@ -13,7 +13,6 @@ const TransactionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-// Ngăn lỗi OverwriteModelError khi hot reload trong Next.js
 const Transaction = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);
 
 export default Transaction;

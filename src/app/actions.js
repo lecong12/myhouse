@@ -11,12 +11,12 @@ export async function addTransaction(formData) {
       title: formData.get('title'),
       amount: Number(formData.get('amount')),
       type: formData.get('type'),
-      category: "Xây dựng",
+      category: 'X�y d?ng',
       date: new Date(),
     };
     await Transaction.create(data);
-    revalidatePath('/'); // Làm mới dữ liệu trang chủ sau khi thêm
+    revalidatePath('/');
   } catch (error) {
-    console.error("Lỗi Action:", error);
+    console.error('L?i Action:', error);
   }
 }
