@@ -7,16 +7,21 @@ export const dynamic = 'force-dynamic';
 export default async function HomePage() {
   await connectDB();
 
+  // 1. Lấy và làm sạch dữ liệu thủ công (An toàn hơn JSON.parse)
   const rawData = await Transaction.find().sort({ date: -1 }).limit(20).lean();
-  const transactions = JSON.parse(JSON.stringify(rawData));
+  const transactions = rawData.map(t => ({
+    ...t,
+    _id: t._id.toString(), // Chuyển ObjectId thành String
+    date: t.date ? new Date(t.date).toISOString() : new Date().toISOString(), // Chuyển Date thành String
+  }));
 
   const rawTotals = await Transaction.aggregate([
     { $group: { _id: '$type', total: { $sum: '$amount' } } }
   ]);
-  const totals = JSON.parse(JSON.stringify(rawTotals));
+  // Không cần map lại rawTotals vì _id là string ('INCOME'/'EXPENSE') và total là number
 
-  const income = totals.find(t => t._id === 'INCOME')?.total || 0;
-  const expense = totals.find(t => t._id === 'EXPENSE')?.total || 0;
+  const income = rawTotals.find(t => t._id === 'INCOME')?.total || 0;
+  const expense = rawTotals.find(t => t._id === 'EXPENSE')?.total || 0;
 
   return (
     <div className='max-w-4xl mx-auto p-6 bg-slate-50 min-h-screen font-sans'>
