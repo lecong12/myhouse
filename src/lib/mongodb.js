@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error('Vui l�ng d?nh nghia bi?n MONGODB_URI trong file .env');
+  throw new Error('Vui lòng định nghĩa biến MONGODB_URI trong file .env');
 }
 
 let cached = global.mongoose;

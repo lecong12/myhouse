@@ -11,12 +11,12 @@ export async function addTransaction(formData) {
       title: formData.get('title'),
       amount: Number(formData.get('amount')),
       type: formData.get('type'),
-      category: 'X�y d?ng',
+      category: 'Xây dựng',
       date: new Date(),
     };
     await Transaction.create(data);
     revalidatePath('/');
   } catch (error) {
-    console.error('L?i Action:', error);
+    console.error('Lỗi Action:', error);
   }
 }
