@@ -2,68 +2,76 @@ import connectDB from '../lib/mongodb';
 import Transaction from '../models/Transaction';
 import { addTransaction } from './actions';
 
+// --- LỆNH LOẠI BỎ TẠO TRANG TĨNH ---
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export default async function HomePage() {
   await connectDB();
 
-  // 1. Lấy và làm sạch dữ liệu thủ công (An toàn hơn JSON.parse)
+  // Lấy dữ liệu và TẨY TỦY (Sanitize) 100% sang JSON thuần
   const rawData = await Transaction.find().sort({ date: -1 }).limit(20).lean();
-  const transactions = rawData.map(t => ({
-    ...t,
-    _id: t._id.toString(), // Chuyển ObjectId thành String
-    date: t.date ? new Date(t.date).toISOString() : new Date().toISOString(), // Chuyển Date thành String
-  }));
+  const transactions = JSON.parse(JSON.stringify(rawData));
 
+  // Tương tự với phần Aggregate
   const rawTotals = await Transaction.aggregate([
     { $group: { _id: '$type', total: { $sum: '$amount' } } }
   ]);
-  // Không cần map lại rawTotals vì _id là string ('INCOME'/'EXPENSE') và total là number
+  const totals = JSON.parse(JSON.stringify(rawTotals));
 
-  const income = rawTotals.find(t => t._id === 'INCOME')?.total || 0;
-  const expense = rawTotals.find(t => t._id === 'EXPENSE')?.total || 0;
+  const income = totals.find(t => t._id === 'INCOME')?.total || 0;
+  const expense = totals.find(t => t._id === 'EXPENSE')?.total || 0;
 
   return (
-    <div className='max-w-4xl mx-auto p-6 bg-slate-50 min-h-screen font-sans'>
-      <h1 className='text-3xl font-black mb-8 text-slate-900 tracking-tight'>MY HOUSE 2026</h1>
-      
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-10'>
-        <div className='p-6 bg-white border rounded-3xl shadow-sm'>
-          <p className='text-[10px] font-bold text-blue-500 uppercase mb-1'>Vốn vào</p>
-          <p className='text-2xl font-black'>{income.toLocaleString()}d</p>
+    <div className="max-w-4xl mx-auto p-6 min-h-screen bg-slate-50">
+      <header className="mb-8">
+        <h1 className="text-3xl font-black text-slate-900 uppercase italic">My House 2026</h1>
+        <p className="text-slate-500 font-bold text-xs tracking-widest">REAL-TIME FINANCIAL TRACKING</p>
+      </header>
+
+      {/* Dashboard hiển thị số tiền */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        <div className="p-6 bg-white border-b-4 border-blue-500 rounded-2xl shadow-sm">
+          <p className="text-[10px] font-bold text-gray-400 uppercase">Vốn vào</p>
+          <p className="text-2xl font-black text-blue-600">{income.toLocaleString()}đ</p>
         </div>
-        <div className='p-6 bg-white border rounded-3xl shadow-sm'>
-          <p className='text-[10px] font-bold text-red-500 uppercase mb-1'>Đã chi</p>
-          <p className='text-2xl font-black'>{expense.toLocaleString()}d</p>
+        <div className="p-6 bg-white border-b-4 border-red-500 rounded-2xl shadow-sm">
+          <p className="text-[10px] font-bold text-gray-400 uppercase">Đã chi</p>
+          <p className="text-2xl font-black text-red-600">{expense.toLocaleString()}đ</p>
         </div>
-        <div className='p-6 bg-slate-900 text-white rounded-3xl shadow-xl'>
-          <p className='text-[10px] font-bold text-slate-400 uppercase mb-1'>Còn lại</p>
-          <p className='text-2xl font-black'>{(income - expense).toLocaleString()}d</p>
+        <div className="p-6 bg-slate-900 rounded-2xl shadow-xl">
+          <p className="text-[10px] font-bold text-slate-500 uppercase">Còn lại</p>
+          <p className="text-2xl font-black text-white">{(income - expense).toLocaleString()}đ</p>
         </div>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
-        <div className='bg-white p-6 rounded-3xl border shadow-sm h-fit'>
-          <h2 className='font-bold mb-4'>Giao dịch mới</h2>
-          <form action={addTransaction} className='space-y-4'>
-            <input name='title' placeholder='Nội dung chi/thu' required className='w-full p-3 bg-slate-50 rounded-xl outline-none focus:ring-2 ring-blue-500' />
-            <div className='flex gap-2'>
-              <input name='amount' type='number' placeholder='Số tiền' required className='flex-1 p-3 bg-slate-50 rounded-xl outline-none' />
-              <select name='type' className='p-3 bg-slate-50 rounded-xl outline-none'>
-                <option value='EXPENSE'>Chi</option>
-                <option value='INCOME'>Thu</option>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Form nhập liệu dùng Server Action */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <h2 className="font-bold text-slate-800 mb-4">Giao dịch mới</h2>
+          <form action={addTransaction} className="space-y-4">
+            <input name="title" placeholder="Mục chi tiêu/thu" required className="w-full p-3 bg-slate-50 rounded-xl outline-none border-2 border-transparent focus:border-blue-400 transition-all" />
+            <div className="flex gap-2">
+              <input name="amount" type="number" placeholder="Số tiền" required className="flex-1 p-3 bg-slate-50 rounded-xl outline-none border-2 border-transparent focus:border-blue-400" />
+              <select name="type" className="p-3 bg-slate-50 rounded-xl border-none outline-none">
+                <option value="EXPENSE">Chi</option>
+                <option value="INCOME">Thu</option>
               </select>
             </div>
-            <button type='submit' className='w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg'>Lưu dữ liệu</button>
+            <button type="submit" className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 active:scale-95 transition-all">
+              LƯU DỮ LIỆU
+            </button>
           </form>
         </div>
 
-        <div className='space-y-3'>
-          <h2 className='font-bold mb-4'>Giao dịch gần đây</h2>
+        {/* Danh sách hiển thị */}
+        <div className="space-y-3">
+          <h2 className="font-bold text-slate-800 mb-4">Lịch sử giao dịch</h2>
           {transactions.map((t) => (
-            <div key={t._id} className='flex justify-between items-center p-4 bg-white border border-slate-100 rounded-2xl shadow-sm'>
-              <span className='text-sm font-bold text-slate-700'>{t.title}</span>
-              <span className={`font-black ${t.type === 'EXPENSE' ? 'text-red-500' : 'text-green-500'}`}>
+            <div key={t._id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+              <span className="text-sm font-bold text-slate-700">{t.title}</span>
+              <span className={`font-black ${t.type === 'EXPENSE' ? 'text-red-500' : 'text-green-600'}`}>
                 {t.type === 'EXPENSE' ? '-' : '+'}{Number(t.amount).toLocaleString()}
               </span>
             </div>
